@@ -6,24 +6,9 @@ we have to use this rebuilder for very long.
 
 Take note that the docker containers must be built in debug mode (DEBUG=1) for this rebuilder to work.
 
-1.  Install golang
-apt install golang-go -y
+1.  Set up
+curl https://raw.githubusercontent.com/oysterprotocol/rebuilder/master/setup.sh | bash
 
-2.  Set up go envs
-mkdir ~/.go
-echo "GOPATH=$HOME/.go" >> ~/.bashrc
-echo "export GOPATH" >> ~/.bashrc
-echo "PATH=\$PATH:\$GOPATH/bin # Add GOPATH/bin to PATH for scripting" >> ~/.bashrc
-source ~/.bashrc
-
-3.  Clone repo
-cd /home/ubuntu
-git clone https://github.com/oysterprotocol/rebuilder.git
-
-4.  Build
-cd rebuilder
-go build
-
-5.  Set up cron job.  This runs it every 10 minutes and writes output to rebuilder.log
+2.  Set cron job.  This runs it every 10 minutes and writes output to rebuilder.log
 crontab -e
 */1 * * * * cd /home/ubuntu/rebuilder && ./rebuilder >> /home/ubuntu/rebuilder/rebuilder.log 2>&1
