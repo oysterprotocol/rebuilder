@@ -44,6 +44,8 @@ func main() {
 		statusResParsed := &checkStatusRes{}
 		if err := parseResBody(statusResponse, statusResParsed); err != nil {
 			rebuild()
+		} else {
+			fmt.Println("no need to rebuild")
 		}
 	}
 }
@@ -54,6 +56,7 @@ func rebuild() {
 	input, err := ioutil.ReadFile(envPath)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	lines := strings.Split(string(input), "\n")
