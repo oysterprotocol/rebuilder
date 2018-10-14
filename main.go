@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net"
 	"encoding/json"
 	"net/http"
 	"fmt"
@@ -17,45 +16,49 @@ type checkStatusRes struct {
 }
 
 // TODO:  update this when "status" is moved out of v2
-const statusPath =
-	":3000" +
+const statusPath = "http://localhost:3000" +
 	string(os.PathSeparator) + "api" +
-	string(os.PathSeparator) + "v2"+
+	string(os.PathSeparator) + "v2" +
 	string(os.PathSeparator) + "status"
 
 // TODO:  make this more configurable rather than hardcoding it
-const envPath =
-	string(os.PathSeparator) + "home" +
-	string(os.PathSeparator) + "ubuntu"+
+const brokerEnvPath = string(os.PathSeparator) + "home" +
+	string(os.PathSeparator) + "ubuntu" +
 	string(os.PathSeparator) + "brokernode" +
 	string(os.PathSeparator) + ".env"
 
 func main() {
-	ipAddress := getLocalIP()
+	fmt.Println("___________________________________________________")
+	fmt.Println("Checking broker status on path: " + statusPath)
+	statusResponse, err := http.Get(statusPath)
+	fmt.Println("statusResponse: ")
+	fmt.Println(statusResponse)
 
-	if ipAddress != "" {
-		fmt.Println("checking status on path: " + ipAddress + statusPath)
-		statusResponse, err := http.Get(ipAddress + statusPath)
-		fmt.Println(statusResponse)
-		defer statusResponse.Body.Close() // we need to close the connection
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
+	if err != nil {
+		fmt.Println("Status check error: ")
+		fmt.Println(err)
+		rebuild()
+	} else {
 		statusResParsed := &checkStatusRes{}
-		if err := parseResBody(statusResponse, statusResParsed); err != nil {
+		parseErr := parseResBody(statusResponse, statusResParsed)
+		if parseErr != nil {
+			fmt.Println("Parsing error: ")
+			fmt.Println(parseErr)
 			rebuild()
 		} else {
+			fmt.Print("Parsed result, broker available: ")
+			fmt.Println(statusResParsed.Available)
 			fmt.Println("no need to rebuild")
 		}
 	}
+	fmt.Println("___________________________________________________")
+	defer statusResponse.Body.Close() // we need to close the connection
 }
 
 func rebuild() {
 	currentTime := time.Now()
 
-	input, err := ioutil.ReadFile(envPath)
+	input, err := ioutil.ReadFile(brokerEnvPath)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -63,29 +66,13 @@ func rebuild() {
 
 	lines := strings.Split(string(input), "\n")
 
-	lines = append(lines, "\n# Rebuild occurred: " + currentTime.Format("Mon Jan _2 15:04 2006"))
+	lines = append(lines, "\n# Rebuild occurred: "+currentTime.Format("Mon Jan _2 15:04 2006"))
 
 	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(envPath, []byte(output), 0644)
+	err = ioutil.WriteFile(brokerEnvPath, []byte(output), 0644)
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func getLocalIP() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
 }
 
 // parseResBody take a request and parses the body to the target interface.
