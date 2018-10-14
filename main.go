@@ -34,7 +34,7 @@ func main() {
 	ipAddress := getLocalIP()
 
 	if ipAddress != "" {
-		fmt.Println("checking status on path: " + statusPath)
+		fmt.Println("checking status on path: " + ipAddress + statusPath)
 		statusResponse, err := http.Get(ipAddress + statusPath)
 		fmt.Println(statusResponse)
 		defer statusResponse.Body.Close() // we need to close the connection
