@@ -11,4 +11,4 @@ curl https://raw.githubusercontent.com/oysterprotocol/rebuilder/master/setup.sh 
 
 2.  Set cron job.  This runs it every 10 minutes and writes output to rebuilder.log
 crontab -e
-*/1 * * * * cd /home/ubuntu/rebuilder && ./rebuilder >> /home/ubuntu/rebuilder/rebuilder.log 2>&1
+*/10 * * * * cd /home/ubuntu/rebuilder && ./rebuilder >> /home/ubuntu/rebuilder/rebuilder.log 2>&1
